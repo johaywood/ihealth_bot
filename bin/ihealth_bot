@@ -1,0 +1,45 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'thor'
+require 'json'
+
+class Bot < Thor
+  desc 'create', 'Creates iHealth Data'
+  def create
+    require_relative '../lib/ihealth_bot/config.rb'
+
+    unless IhealthBot::Config.valid?
+      puts 'Invalid or missing config file!'
+      puts 'Create one with `ihealth_bot config -e email@example.com -p pA$sW0Rd`'
+      return
+    end
+
+    require 'capybara'
+    require 'capybara/dsl'
+    require 'capybara-webkit'
+
+    Capybara.default_driver = :webkit
+    Capybara.javascript_driver = :webkit
+    Capybara.default_max_wait_time = 10
+    Capybara.app_host = 'https://cloud.ihealthlabs.com'
+
+    require_relative '../lib/ihealth_bot.rb'
+
+    IhealthBot.create_data
+  end
+
+  desc 'config', 'Configure iHealth Bot Credentials'
+  method_option :email, type: :string, aliases: '-e', desc: 'iHealth account email address'
+  method_option :password, type: :string, alias: '-p', desc: 'iHealth account password'
+  def config
+    File.open("#{Dir.home}/.ihealth_bot", 'w+') do |f|
+      config = JSON.parse(f.read, symbolize_names: true) rescue { credentials: {} }
+      config[:credentials][:email] = options[:email] if options[:email]
+      config[:credentials][:password] = options[:password] if options[:password]
+      f.write(JSON.dump(config))
+    end
+  end
+end
+
+Bot.start
