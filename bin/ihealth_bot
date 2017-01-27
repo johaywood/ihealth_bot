@@ -31,7 +31,7 @@ class Bot < Thor
 
   desc 'config', 'Configure iHealth Bot Credentials'
   method_option :email, type: :string, aliases: '-e', desc: 'iHealth account email address'
-  method_option :password, type: :string, alias: '-p', desc: 'iHealth account password'
+  method_option :password, type: :string, aliases: '-p', desc: 'iHealth account password'
   def config
     File.open("#{Dir.home}/.ihealth_bot", 'w+') do |f|
       config = JSON.parse(f.read, symbolize_names: true) rescue { credentials: {} }
